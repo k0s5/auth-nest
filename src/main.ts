@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+  app.setGlobalPrefix('/api/auth')
   const configService = app.get(ConfigService)
   app.use(cookieParser(configService.getOrThrow<string>('COOKIE_SECRET')))
   await app.listen(configService.getOrThrow<number>('PORT'))
