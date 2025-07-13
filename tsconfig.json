@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@core": ["src/core"],
+      "@core/*": ["src/core/*"],
+      "@modules": ["src/modules"],
+      "@modules/*": ["src/modules/*"],
+      "@common": ["src/common"],
+      "@common/*": ["src/common/*"],
+      "@config": ["src/core/config"],
+      "@config/*": ["src/core/config/*"],
+      "@filters": ["src/common/filters"],
+      "@filters/*": ["src/common/filters/*"],
+      "@shared": ["src/shared"],
+      "@shared/*": ["src/shared/*"],
+      "@prisma/client": ["generated/prisma"],
+      "@prisma/client/*": ["generated/prisma/*"]
+    }
+  }
+}

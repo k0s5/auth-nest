@@ -1,0 +1,48 @@
+services:
+  # PostgreSQL - основная база данных (продакшн настройки)
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"
+    volumes:
+      - postgres-auth-dev-data:/var/lib/postgresql/data
+    networks:
+      - auth-koa-postgres
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Лимиты ресурсов
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+
+  # Adminer - веб-интерфейс для PostgreSQL
+  adminer:
+    image: adminer:5.3.0
+    container_name: auth-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    ports:
+      - "${POSTGRES_ADMINER_EXTERNAL_PORT}:${POSTGRES_ADMINER_INTERNAL_PORT}"
+    networks:
+      - auth-koa-postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres-auth-dev-data:
+
+networks:
+  auth-koa-postgres:
+    driver: bridge
