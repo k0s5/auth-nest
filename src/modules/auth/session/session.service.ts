@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { ITokenPayload } from '@shared/types'
@@ -15,13 +15,14 @@ export class SessionService {
     private readonly prisma: PrismaService
   ) {}
 
-  async create(input: {
+  async create(createSessionPayload: {
     userId: string
     fingerprint: string
     accessToken: string
     refreshToken: string
   }) {
-    const { accessToken, fingerprint, refreshToken, userId } = input
+    const { accessToken, fingerprint, refreshToken, userId } =
+      createSessionPayload
 
     const expiresAt = addTimeToDate(
       this.configService.getOrThrow<string>('REFRESH_TOKEN_LIFETIME')
@@ -34,6 +35,32 @@ export class SessionService {
         accessToken,
         refreshToken,
         expiresAt
+      }
+    })
+  }
+
+  async update(
+    currentRefreshToken: string,
+    updateSessionPayload: {
+      fingerprint: string
+      accessToken: string
+      refreshToken: string
+    }
+  ) {
+    const { accessToken, fingerprint, refreshToken } = updateSessionPayload
+
+    await this.prisma.session.update({
+      data: {
+        accessToken,
+        fingerprint,
+        refreshToken,
+        createdAt: new Date(),
+        expiresAt: addTimeToDate(
+          this.configService.getOrThrow<string>('REFRESH_TOKEN_LIFETIME')
+        )
+      },
+      where: {
+        refreshToken: currentRefreshToken
       }
     })
   }
@@ -68,6 +95,7 @@ export class SessionService {
         )
       }),
       this.jwtService.signAsync(refreshTokenPayload, {
+        secret: this.configService.getOrThrow<string>('REFRESH_TOKEN_SECRET'),
         expiresIn: this.configService.getOrThrow<string>(
           'REFRESH_TOKEN_LIFETIME'
         )
@@ -78,5 +106,30 @@ export class SessionService {
       accessToken,
       refreshToken
     }
+  }
+
+  async verifyToken(
+    tokenDto:
+      | { accessToken: string; refreshToken?: string }
+      | { accessToken?: string; refreshToken: string }
+  ) {
+    const { accessToken, refreshToken } = tokenDto
+
+    if (!accessToken && !refreshToken) {
+      throw new BadRequestException('Tokens missing')
+    }
+
+    const token = (accessToken ?? refreshToken) as string
+
+    const secret = this.configService.getOrThrow<string>(
+      accessToken ? 'ACCESS_TOKEN_SECRET' : 'REFRESH_TOKEN_SECRET'
+    )
+
+    const tokenPayload = await this.jwtService.verifyAsync<ITokenPayload>(
+      token,
+      { secret }
+    )
+
+    return tokenPayload
   }
 }
