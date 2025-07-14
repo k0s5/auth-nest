@@ -4,6 +4,14 @@ import { IsNotEmpty, IsNumber, IsString, validateSync } from 'class-validator'
 
 export class EnvironmentVariables {
   @IsNotEmpty()
+  @IsNumber()
+  PORT: number
+
+  @IsNotEmpty()
+  @IsString()
+  NODE_ENV: string
+
+  @IsNotEmpty()
   @IsString()
   POSTGRES_HOST: string
   POSTGRES_USER: string
