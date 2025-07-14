@@ -1,7 +1,7 @@
 import { validate } from '@config/env.validation'
+import { PrismaModule } from '@core/prisma'
 import { AccountModule } from '@modules/auth/account'
 import { SessionModule } from '@modules/auth/session'
-import { PrismaModule } from '@modules/prisma'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { IS_DEV } from '@shared/utils/is-dev.util'
