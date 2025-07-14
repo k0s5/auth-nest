@@ -16,6 +16,8 @@ model User {
 
   username        String    @unique
 
+  sessions        Session[]
+
   isActive        Boolean   @default(true)  @map("is_active")
 
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -23,4 +25,26 @@ model User {
 
   @@index([email])
   @@map("users")
+}
+
+model Session {
+  id              String    @id @default(uuid())
+  accessToken     String    @unique
+  refreshToken    String    @unique
+  fingerprint     String    @unique
+  ip              String?
+  ua              String?
+
+  createdAt       DateTime  @default(now())
+  expiresAt       DateTime
+  revokedAt       DateTime?
+
+  userId          String?
+  user            User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accessToken])
+  @@index([refreshToken])
+  @@index([fingerprint])
+  @@index([userId])
+  @@map("sessions")
 }
