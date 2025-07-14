@@ -4,7 +4,7 @@ import {
   // INestApplication
   OnModuleInit
 } from '@nestjs/common'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from 'generated/prisma'
 
 @Injectable()
 export class PrismaService
@@ -13,10 +13,10 @@ export class PrismaService
 {
   // constructor() {
   //   super({
-  //     log: ['query'] // опционально: логирование запросов
+  //     log: ['query'] // optional: log requests
   //   })
 
-  //   // Подключаем middleware для логирования времени выполнения запросов
+  //   // Connecting middleware for requests time logging
   //   this.$extends({
   //     query: {
   //       async $allOperations({ operation, model, args, query }) {
