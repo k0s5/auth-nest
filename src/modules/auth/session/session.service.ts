@@ -20,8 +20,10 @@ export class SessionService {
     fingerprint: string
     accessToken: string
     refreshToken: string
+    ip?: string
+    ua?: string
   }) {
-    const { accessToken, fingerprint, refreshToken, userId } =
+    const { accessToken, fingerprint, refreshToken, userId, ip, ua } =
       createSessionPayload
 
     const expiresAt = addTimeToDate(
@@ -34,6 +36,8 @@ export class SessionService {
         fingerprint,
         accessToken,
         refreshToken,
+        ...(ip && { ip }),
+        ...(ua && { ua }),
         expiresAt
       }
     })
@@ -45,9 +49,10 @@ export class SessionService {
       fingerprint: string
       accessToken: string
       refreshToken: string
+      ip?: string
     }
   ) {
-    const { accessToken, fingerprint, refreshToken } = updateSessionPayload
+    const { accessToken, fingerprint, refreshToken, ip } = updateSessionPayload
 
     await this.prisma.session.update({
       data: {
@@ -55,6 +60,7 @@ export class SessionService {
         fingerprint,
         refreshToken,
         createdAt: new Date(),
+        ip,
         expiresAt: addTimeToDate(
           this.configService.getOrThrow<string>('REFRESH_TOKEN_LIFETIME')
         )

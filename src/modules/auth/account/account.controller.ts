@@ -31,6 +31,7 @@ export class AccountController {
   @UsePipes(new ValidationPipe())
   @Post('signup')
   async signUp(
+    @Req() req: Request,
     @Headers('fingerprint') fingerprint: string,
     @Body() dto: SignUpRequestBody
   ) {
@@ -60,11 +61,17 @@ export class AccountController {
       userId,
       fingerprint,
       accessToken,
-      refreshToken
+      refreshToken,
+      ip:
+        (req.headers['x-forwarded-for'] as string) ||
+        req.ip ||
+        req.socket.remoteAddress,
+      ua: req.headers['user-agent']
     })
 
     // set refreshToken cookie
     // cookie initialized in SetRefreshTokenInterceptor interceptor
+
     return {
       user,
       accessToken,
@@ -75,6 +82,7 @@ export class AccountController {
   @UseInterceptors(SetRefreshTokenInterceptor)
   @Post('signin')
   async signIn(
+    @Req() req: Request,
     @Headers('fingerprint') fingerprint: string,
     @Body() dto: SignInRequestBody
   ) {
@@ -113,7 +121,12 @@ export class AccountController {
       fingerprint,
       userId: user.id,
       accessToken,
-      refreshToken
+      refreshToken,
+      ip:
+        (req.headers['x-forwarded-for'] as string) ||
+        req.ip ||
+        req.socket.remoteAddress,
+      ua: req.headers['user-agent']
     })
 
     // cookie initialized in SetRefreshTokenInterceptor interceptor
@@ -153,33 +166,39 @@ export class AccountController {
       throw new BadRequestException('User fingerprint missing')
     }
 
-    const refreshToken = req.signedCookies['refreshToken'] as string
+    const currentRefreshToken = req.signedCookies['refreshToken'] as string
 
-    if (!refreshToken) {
+    if (!currentRefreshToken) {
       throw new BadRequestException('Refresh token missing')
     }
 
     const { email, userId, username } = await this.sessionService.verifyToken({
-      refreshToken
+      refreshToken: currentRefreshToken
     })
 
-    const { accessToken, refreshToken: newRefreshToken } =
+    const { accessToken, refreshToken } =
       await this.sessionService.generateTokens({
         email,
         userId,
         username
       })
 
-    //update session
     await this.sessionService.update(refreshToken, {
       fingerprint,
       accessToken,
-      refreshToken: newRefreshToken
+      refreshToken,
+      ip:
+        (req.headers['x-forwarded-for'] as string) ||
+        req.ip ||
+        req.socket.remoteAddress
     })
+
+    // set refreshToken cookie
+    // cookie initialized in SetRefreshTokenInterceptor interceptor
 
     return {
       accessToken,
-      refreshToken: newRefreshToken
+      refreshToken
     }
   }
 }
